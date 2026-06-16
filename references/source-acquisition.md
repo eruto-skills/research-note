@@ -158,12 +158,12 @@ When a user provides a PDF file, extract text directly with the Read tool.
 
 ## URL Content Fetching Strategy
 
-Use Task subagents with `fetch-page.js` (headless Chrome) for URL content retrieval.
+→ [fetch-web](../../fetch-web/SKILL.md) の戦略に従う（r.jina.ai 主、headless Chrome フォールバック）。
 
-Launch multiple subagents in parallel for multiple URLs. During WebSearch, actively pick up open-access results (e.g., PMC) when available.
+複数 URL は並列で取得する。WebSearch 中は PMC 等の open-access 結果を優先的に拾う。
 
-**Sites with strict bot protection (known)**: WebMD, Cleveland Clinic, Healthline, Planned Parenthood, Wikipedia (*.wikipedia.org), note.com
-**Sites that work well (known)**: PMC (pmc.ncbi.nlm.nih.gov), note.com (via API v3)
+**Bot 対策が厳しいサイト（既知）**: WebMD, Cleveland Clinic, Healthline, Planned Parenthood, Wikipedia (→ MediaWiki API を使う), note.com (→ API v3 を使う)
+**取得しやすいサイト（既知）**: PMC (pmc.ncbi.nlm.nih.gov), note.com（API v3 経由）
 
 ## Wikipedia Fallback Strategy
 
@@ -223,18 +223,13 @@ curl -s 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&te
 
 ## Fetch Failure Fallback
 
-When `fetch-page.js` fails to retrieve page content (timeout, 403, etc.):
+[fetch-web](../../fetch-web/SKILL.md) の汎用フォールバック（r.jina.ai → headless Chrome → direct curl）が全て失敗した場合:
 
-1. **Dedicated API (highest priority)**: Try source-specific APIs
-   - Academic papers → PubMed E-utilities (see above)
-   - Wikipedia → MediaWiki API (see above)
-   - note.com → API v3 (see above)
-2. **Direct curl (second fallback)**: Especially effective for API endpoints and plain-text sites
-   ```bash
-   curl -s -A 'Mozilla/5.0' '<URL>'
-   ```
-   - May not work for JS-rendered sites
-3. If all methods fail, citing only search snippets is treated as "insufficiently verified"
-4. However, if the same fact is confirmed by **multiple search snippets**, it is acceptable (extension of the N2 multi-media agreement rule)
-5. If verification still fails, add a caveat in the text (e.g., "officially announced but details unconfirmed")
-6. **For user-provided URLs** that fail: report to the user and ask for key points (never silently drop a source the user intended to reference)
+1. **ソース固有 API（最優先）**: サイト別の専用 API を試す
+   - 学術論文 → PubMed E-utilities（上記参照）
+   - Wikipedia → MediaWiki API（上記参照）
+   - note.com → API v3（上記参照）
+2. 全手段が失敗した場合、検索スニペットのみの引用は「検証不十分」扱い
+3. ただし**複数の検索スニペットで同一事実が確認できる**場合は許容（N2 マルチメディア合意ルールの延長）
+4. 検証が依然として失敗する場合は本文に注記を入れる（例: 「公式発表は確認されているが詳細は未確認」）
+5. **ユーザー提供 URL** が失敗した場合: ユーザーに報告し要点を共有してもらう（ユーザーが参照しようとしたソースをサイレントに落とさない）

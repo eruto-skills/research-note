@@ -50,18 +50,9 @@ Prefer higher-tier sources. Do NOT cite a URL unless you have actually read the 
 
 ### URL Content Fetching
 
-Use Task subagents with the bundled `fetch-page.js` (headless Chrome) for URL content retrieval:
+→ [fetch-web](../fetch-web/SKILL.md) の戦略に従う（r.jina.ai 主、headless Chrome フォールバック）。
 
-```
-Task(subagent_type="general-purpose", max_turns=3, prompt="Extract [specific info] from this URL: <URL>. Run `node .claude/skills/research-note/scripts/fetch-page.js \"<URL>\"` via Bash and return the extracted information.")
-```
-
-**Design rationale:**
-
-- `fetch-page.js` uses headless Chrome with configurable timeout (default 30s)
-- The subagent is an AI that interprets raw text and returns only the summary (keeps the main context compact)
-- `max_turns: 3` limits subagent execution
-- For multiple URLs, launch multiple subagents in parallel
+複数 URL は Agent subagent を並列で起動する。subagent はページ全文でなく必要な情報のサマリーのみを返すことでメインコンテキストを圧迫しない。
 
 ### Source Acquisition
 
@@ -168,5 +159,4 @@ These integrations depend on which skills are installed in your project. No spec
 
 - `yt-dlp` - YouTube transcript extraction
 - `curl` + `jq` - API calls (X/Twitter, GitHub, Wikipedia, PubMed)
-- `puppeteer-core` + `turndown` - Headless Chrome page fetching (for `scripts/fetch-page.js`)
-- Google Chrome or Chromium - Required by `fetch-page.js`
+- `puppeteer-core` + `turndown` + Google Chrome - Headless Chrome fallback（[fetch-web](../fetch-web/SKILL.md) 経由）
