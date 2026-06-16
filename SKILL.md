@@ -20,7 +20,7 @@ End-to-end research skill: investigate a topic and produce a footnoted Markdown 
 2. **Parallel: Check existing content + Web research + Source acquisition** *(run concurrently)*
    - 2a. Search the project for related existing notes. Read found notes to build context for comparison (insights emerge naturally from connecting new information to existing knowledge)
    - 2b. Use WebSearch to find sources. For URL content retrieval, use Task subagents (see "URL Content Fetching" below)
-   - 2c. YouTube URL → extract transcript via `yt-dlp` → [source-acquisition](references/source-acquisition.md)
+   - 2c. YouTube URL → extract transcript via `yt-dlp` → [source-acquisition](references/source-acquisition.md). For series/playlist research (finding cut or deferred topics), follow [series-cut-topics](references/series-cut-topics.md)
    - 2d. X/Twitter URL → fetch via FixTweet API → [source-acquisition](references/source-acquisition.md)
    - 2e. PDF file → extract with Read tool → [source-acquisition](references/source-acquisition.md)
    - 2f. GitHub URL → fetch metadata + README via API → [source-acquisition](references/source-acquisition.md)
