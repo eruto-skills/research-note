@@ -37,7 +37,22 @@ For time-sensitive topics (product launches, events, industry moves), Tier 1-2 a
 - Claims backed only by N3: search for N1-N2 sources, or note low confidence
 - Same fact reported by multiple N2 outlets: considered sufficiently verified
 
+## Podcast / YouTube Content Creator
+
+For podcasts, YouTube series, and ongoing video content where hosts share knowledge or opinions:
+
+|Tier|Examples|Notes|
+|-|-|-|
+|P1. Domain expert|Researcher or practitioner speaking about their own specialty|Valid as expert opinion and framing; not a substitute for academic citation of specific facts|
+|P2. Knowledgeable host|Experienced generalist explaining a field to an audience|Useful for context and interpretation; verify factual claims via Knowledge or News tiers|
+|P3. Exploratory discussion|Hosts learning alongside the audience, speculative conversation|Treat like Tier 3 Knowledge; corroboration required for any factual claim|
+
+- "The host said X" is a citation for the host's belief or framing — it is not proof that X is true
+- Factual claims (dates, numbers, named events, causal chains) need corroboration from Knowledge or News tiers regardless of P tier
+- Check channel description, episode notes, or the host's background to determine tier
+- For series research: mark claims that come solely from host statements as needing corroboration before treating them as established facts
+
 ## Common Rules
 
 - Never cite a URL without reading and verifying the content
-- When a topic spans both Knowledge and News categories, apply both tier systems
+- When a topic spans multiple categories (Knowledge / News / Podcast), apply all relevant tier systems

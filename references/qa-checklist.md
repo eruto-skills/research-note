@@ -75,6 +75,20 @@ Footnote integrity and source quality are especially easy to miss on visual insp
 - [ ] Before inserting links, confirmed no filename ambiguity via Glob
 - [ ] File placed in appropriate directory (consulted user if no existing directory fits)
 
+### G. Presentation Research (Structural Premise Flags)
+
+When the research is being done to support a presentation or structured argument — not just a general knowledge note — apply this additional check.
+
+A **structural premise** is a claim that the entire argument depends on. If it turns out to be wrong, the narrative collapses. These are different from decorative facts (interesting but not load-bearing).
+
+- [ ] For each claim that comes from a **single source**, ask: "If this claim is wrong, does the presentation's core argument still hold?"
+  - If **yes** (argument survives): normal citation, no special flag needed
+  - If **no** (argument collapses): mark with ⚠️ in the note, and add a note: "Single-source structural premise — seek corroboration before building narrative around this"
+- [ ] Claims from podcast hosts or YouTube content creators (P-tier sources) that are being used as structural premises are flagged automatically — host statements about facts need Knowledge/News tier corroboration before being treated as load-bearing
+- [ ] If a structural premise remains single-source after additional searching, surface it explicitly to the user before the note is finalized
+
+**Why this matters**: In presentation work, a single incorrect load-bearing premise can invalidate the entire argument. Finding the error after the slides are built (or worse, after delivery) is far more costly than flagging it during research. The ⚠️ marker in the note makes these candidates visible when the presentation structure is being designed.
+
 ## Verification Loop
 
 1. Generate note
