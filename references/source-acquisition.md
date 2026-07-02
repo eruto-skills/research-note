@@ -121,13 +121,18 @@ Treat URLs matching `github.com/{owner}/{repo}` as GitHub repositories.
 # Metadata (Stars, language, license, last updated)
 curl -s -A 'Mozilla/5.0' 'https://api.github.com/repos/{owner}/{repo}' | jq '{stargazers_count, forks_count, language, license: .license.spdx_id, created_at, updated_at, topics}'
 
-# README (Base64 decode)
+# README (raw Accept header — no jq/base64 needed, preferred)
+curl -s -A 'Mozilla/5.0' -H 'Accept: application/vnd.github.raw' 'https://api.github.com/repos/{owner}/{repo}/readme'
+
+# README (Base64 decode — legacy, requires jq)
 curl -s -A 'Mozilla/5.0' 'https://api.github.com/repos/{owner}/{repo}/readme' | jq -r '.content' | base64 -d
 ```
 
 - GitHub API has rate limits (unauthenticated: 60 requests/hour). For bulk fetching, run inside subagents
 - If README fetch fails (404), fall back to `fetch-page.js` on the repository page
 - Include metadata (Stars, language, last updated) in comparison tables
+
+> **No `jq` available?** On environments without `jq` (e.g. Windows Git Bash by default), prefer the `Accept: application/vnd.github.raw` header for the README (it skips both `jq` and `base64`). For metadata, extract fields with `grep -o '"stargazers_count":[0-9]*'` or pipe through `python`/`py -c` instead of `jq`. Installing `jq` (`winget install jqlang.jq`) is the cleaner long-term fix.
 
 ### Note Rules
 
