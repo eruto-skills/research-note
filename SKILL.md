@@ -37,7 +37,7 @@ End-to-end research skill: investigate a topic and produce a footnoted Markdown 
 8. **Parallel: Link insertion + Content verification** *(run concurrently)*
    - 8a. Insert links to highly relevant existing files only
    - 8b. Verify each footnote URL actually supports the corresponding claim
-9. **Lint (if configured)**: If a lint command is defined in "Project Integration" below, run it on the generated file
+9. **Lint (if configured)**: Run the lint command from the project CLAUDE.md's 「品質ゲート」 section (or "Project Integration" below). If neither declares one, note 「散文 lint: 未設定」 instead of skipping silently
 10. **QA check**: → [qa-checklist](references/qa-checklist.md)
 
 ## Output Rules
