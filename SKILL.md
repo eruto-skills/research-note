@@ -25,6 +25,7 @@ End-to-end research skill: investigate a topic and produce a footnoted Markdown 
    - 2e. PDF file → extract with Read tool → [source-acquisition](references/source-acquisition.md)
    - 2f. GitHub URL → fetch metadata + README via API → [source-acquisition](references/source-acquisition.md)
 3. **Evaluate source quality**: Assess reliability of collected sources → [source-quality-tiers](references/source-quality-tiers.md)
+   - GitHub リポジトリの品質を **stars 数で判断しない**（バズった直後の数字は品質を保証しない）。コミット履歴・イシュー対応・実利用の形跡（実エンゲージメント）を併せて確認する
 4. **Share findings and gather feedback**: Present key facts and discussion points to the user before generating the note
    - Explicitly ask: "Any areas you'd like me to dig deeper into?"
    - If the user raises questions, conduct additional research before proceeding
