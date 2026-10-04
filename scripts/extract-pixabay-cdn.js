@@ -12,12 +12,23 @@ const puppeteer = require("puppeteer-core");
 const fs = require("fs");
 
 function findChrome() {
-  const candidates = [
-    "C:/Program Files/Google/Chrome/Application/chrome.exe",
-    "C:/Program Files (x86)/Google/Chrome/Application/chrome.exe",
-  ];
-  for (const p of candidates) if (fs.existsSync(p)) return p;
-  return null;
+  const path = require('path');
+  if (process.env.CHROME_PATH) {
+    return fs.existsSync(process.env.CHROME_PATH) ? process.env.CHROME_PATH : null;
+  }
+  const candidates = [];
+  if (process.platform === 'win32') {
+    for (const base of [process.env.ProgramFiles, process.env['ProgramFiles(x86)'], process.env.LOCALAPPDATA]) {
+      if (base) candidates.push(path.join(base, 'Google/Chrome/Application/chrome.exe'));
+    }
+    candidates.push('C:/Program Files/Google/Chrome/Application/chrome.exe', 'C:/Program Files (x86)/Google/Chrome/Application/chrome.exe');
+  } else if (process.platform === 'darwin') {
+    candidates.push('/Applications/Google Chrome.app/Contents/MacOS/Google Chrome');
+    if (process.env.HOME) candidates.push(path.join(process.env.HOME, 'Applications/Google Chrome.app/Contents/MacOS/Google Chrome'));
+  } else {
+    candidates.push('/usr/bin/google-chrome', '/usr/bin/google-chrome-stable', '/usr/bin/chromium', '/usr/bin/chromium-browser', '/snap/bin/chromium');
+  }
+  return candidates.find(candidate => fs.existsSync(candidate)) || null;
 }
 
 const URL_RE = /https:\/\/cdn\.pixabay\.com\/(?:audio|download\/audio)\/[^"'\s)]+?\.mp3(?:\?[^"'\s)]*)?/gi;

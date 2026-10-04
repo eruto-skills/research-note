@@ -1,0 +1,240 @@
+# Source Acquisition
+
+Acquisition commands, fallback procedures, and error handling for each source type.
+
+## YouTube Transcript via yt-dlp
+
+Extract subtitles using `yt-dlp`.
+
+```bash
+# Fetch subtitles (prefer Japanese, include auto-generated)
+yt-dlp --write-auto-subs --sub-langs 'ja' --sub-format srt --skip-download -o '/tmp/yt-%(id)s' '<URL>'
+
+# Clean extraction (remove timecodes and noise)
+grep -v '^\$' /tmp/yt-<ID>.ja.srt | grep -v '^[0-9]*$' | grep -v '^\[音楽\]$' | grep -v '^[0-9][0-9]:'
+
+# List available subtitle languages
+yt-dlp --list-subs '<URL>'
+
+# Fetch comments (when needed)
+yt-dlp --write-comments --no-download -o '/tmp/yt-%(id)s' '<URL>'
+```
+
+- If Japanese subtitles are unavailable, fall back to `ja-orig` or `en`
+- If no subtitles exist at all, report to the user
+- Downloaded subtitle files are saved as `/tmp/yt-<ID>.<lang>.srt`
+
+## YouTube / Video Sources
+
+YouTube transcripts are usable as information sources with the following rules:
+
+- Use the video URL for footnotes (e.g., `[^1]: https://www.youtube.com/watch?v=xxxxx`)
+- Transcript content is spoken word — not equivalent to written sources. Classify by speaker:
+  - Official channel announcements → N1 equivalent
+  - Expert / notable developer commentary → Tier 2 to N2 equivalent
+  - General user videos → Tier 3 to N3 equivalent
+- If transcript extraction fails (no subtitles), report to the user
+
+## X (Twitter) Posts
+
+Fetch X/Twitter posts using the authentication-free FixTweet API.
+
+### URL Detection
+
+Treat URLs matching `x.com/*/status/*` or `twitter.com/*/status/*` as X posts.
+
+### Fetch Commands
+
+```bash
+# Fetch tweet info via FixTweet API (primary)
+# Response JSON .tweet contains: text, author, created_at, quote, replying_to_status, etc.
+curl -s 'https://api.fxtwitter.com/<user>/status/<tweet_id>'
+
+# Extract text only
+curl -s 'https://api.fxtwitter.com/<user>/status/<tweet_id>' | jq -r '.tweet.text'
+
+# oEmbed API (fallback: use when FixTweet returns HTTP error, timeout, or empty response)
+curl -s 'https://publish.twitter.com/oembed?url=https://x.com/<user>/status/<tweet_id>'
+```
+
+Fall back to oEmbed when FixTweet returns a non-200 code or curl errors. If both fail, report to the user.
+
+### Inaccessible Tweets
+
+Deleted, private (locked), or suspended account tweets cannot be fetched via API. Report to the user and ask them to share the content, or search for cached copies via WebSearch.
+
+### Thread Reconstruction
+
+Viral threads are often compiled on aggregator sites (e.g., Togetter). **First search with WebSearch for `"keyword" togetter`** — if a compilation exists, extract the full text from there.
+
+**Upward (parent tweet traversal)**: Follow `replying_to_status_id` recursively until null. Cap at 20 tweets; report excess to user.
+
+**Downward (child tweet discovery)**: FixTweet API does not return child tweets. Use this priority:
+
+1. If the tweet ends with continuation markers ("continued", "→", "thread", "1/", etc.), search for children via WebSearch
+2. **If not found, ask the user (required)** — they likely have the continuation URLs. Ask: "I couldn't retrieve the rest of the thread. Could you share the continuation URLs?"
+3. Only if the user also doesn't have them, note that the full thread was not retrieved
+
+### Quote Tweets and Replies
+
+|Target|Method|
+|-|-|
+|Quotes within the tweet|FixTweet API `quote` field|
+|Viral quote tweets|WebSearch for the tweet URL|
+|Notable replies|WebSearch for `site:x.com "in reply to @user"`, then fetch via FixTweet|
+
+Exhaustive retrieval of all replies/quotes is not possible without authentication. Fetch only notable ones found via WebSearch.
+
+### Tier Classification
+
+|Author|Tier|
+|-|-|
+|Official accounts (companies, organizations, projects)|N1 equivalent|
+|Experts, notable figures, developers|N2 equivalent|
+|General users|N3 equivalent|
+
+### Citation Format
+
+```markdown
+The official account announced the new feature[^1].
+A notable developer shared additional context in a quote tweet[^2].
+
+[^1]: https://x.com/user/status/123456789
+[^2]: https://x.com/developer/status/987654321
+```
+
+- For threads, use the first tweet's URL as the footnote and note it's a thread in the body text
+- For quote tweets, create separate footnotes for the original and the quote
+- Prioritize high-impact quotes (expert reactions) found via WebSearch
+
+## GitHub Repositories
+
+When citing GitHub repos, fetch metadata in addition to README content.
+
+### URL Detection
+
+Treat URLs matching `github.com/{owner}/{repo}` as GitHub repositories.
+
+### Fetch Commands
+
+```bash
+# Metadata (Stars, language, license, last updated)
+curl -s -A 'Mozilla/5.0' 'https://api.github.com/repos/{owner}/{repo}' | jq '{stargazers_count, forks_count, language, license: .license.spdx_id, created_at, updated_at, topics}'
+
+# README (raw Accept header — no jq/base64 needed, preferred)
+curl -s -A 'Mozilla/5.0' -H 'Accept: application/vnd.github.raw' 'https://api.github.com/repos/{owner}/{repo}/readme'
+
+# README (Base64 decode — legacy, requires jq)
+curl -s -A 'Mozilla/5.0' 'https://api.github.com/repos/{owner}/{repo}/readme' | jq -r '.content' | base64 -d
+```
+
+- GitHub API has rate limits (unauthenticated: 60 requests/hour). For bulk fetching, run inside subagents
+- If README fetch fails (404), fall back to `fetch-page.js` on the repository page
+- Include metadata (Stars, language, last updated) in comparison tables
+
+> **No `jq` available?** On environments without `jq` (e.g. Windows Git Bash by default), prefer the `Accept: application/vnd.github.raw` header for the README (it skips both `jq` and `base64`). For metadata, extract fields with `grep -o '"stargazers_count":[0-9]*'` or pipe through `python`/`py -c` instead of `jq`. Installing `jq` (`winget install jqlang.jq`) is the cleaner long-term fix.
+
+### Note Rules
+
+- Use the repository URL for footnotes (e.g., `[^1]: https://github.com/owner/repo`)
+- Include Stars, language, license, and last-updated date in comparison tables
+- Do not mix different metrics (e.g., GitHub Stars and X likes should be in separate rows)
+
+### Tier Classification
+
+|Repository Type|Tier|
+|-|-|
+|Official organization repos|N1 equivalent|
+|Notable developer/expert personal repos|N2 equivalent|
+|General user repos|N3 equivalent|
+
+## PDF Sources
+
+When a user provides a PDF file, use the available PDF skill or PDF extraction tool. In Claude Code, Read can also read PDFs.
+
+- Claude Code Read supports PDF reading (`pages` parameter for range, max 20 pages per call)
+- For large PDFs (10+ pages), read in chunks (e.g., `pages: "1-20"`, `pages: "21-40"`)
+- Tier classification is content-based:
+  - Academic papers, official reports → Tier 1 equivalent
+  - Corporate whitepapers, technical specs → Tier 1 to N1 equivalent
+  - Conference materials, slides → Tier 2 to N2 equivalent
+- Include PDF title and origin in footnotes (e.g., `[^1]: "Paper Title", Author, 2025`)
+- If the original URL is known, include it as well
+
+## URL Content Fetching Strategy
+
+利用可能な fetch-web スキルを名前で探して読み、取得戦略に従う。未導入なら r.jina.ai → このスキル同梱の scripts/fetch-page.js → direct curl の順で試す。
+
+複数 URL は並列で取得する。WebSearch 中は PMC 等の open-access 結果を優先的に拾う。
+
+**Bot 対策が厳しいサイト（既知）**: WebMD, Cleveland Clinic, Healthline, Planned Parenthood, Wikipedia (→ MediaWiki API を使う), note.com (→ API v3 を使う)
+**取得しやすいサイト（既知）**: PMC (pmc.ncbi.nlm.nih.gov), note.com（API v3 経由）
+
+## Wikipedia Fallback Strategy
+
+Wikipedia often returns 403 errors due to bot protection. The MediaWiki API is the most reliable approach.
+
+```bash
+# Full text (plain text)
+curl -s -A 'Mozilla/5.0' 'https://{lang}.wikipedia.org/w/api.php?action=query&titles={title}&prop=extracts&explaintext=true&format=json'
+
+# Summary only
+curl -s -A 'Mozilla/5.0' 'https://{lang}.wikipedia.org/api/rest_v1/page/summary/{title}'
+```
+
+- `{title}` is the URL-encoded article title (the part after `/wiki/` in the URL)
+- `{lang}` is the language code (`en`, `ja`, `lt`, etc.)
+- Full text response: plain text in `query.pages.{pageid}.extract`
+- Summary response: summary in the `extract` field
+- If curl also fails, use headless Chrome (`fetch-page.js`) as a last resort
+
+## note.com Fallback Strategy
+
+note.com is JS-dependent, but API v3 can retrieve article body HTML.
+
+```bash
+# Fetch article body (returns HTML)
+# note_key is the last part of the article URL (e.g., nf113f0d1d4c1)
+curl -s -A 'Mozilla/5.0' 'https://note.com/api/v3/notes/{note_key}' | jq -r '.data.body'
+
+# Extract as plain text
+curl -s -A 'Mozilla/5.0' 'https://note.com/api/v3/notes/{note_key}' | jq -r '.data.body' | python3 -c 'import sys,re; print(re.sub(r"<[^>]+>","\n",sys.stdin.read()))'
+```
+
+- `{note_key}` is the part after `/n/` in the URL (e.g., `https://note.com/user/n/nf113f0d1d4c1` → `nf113f0d1d4c1`)
+- Response body is in `.data.body` as HTML
+- Paid content is not accessible (free portion only)
+
+## PubMed E-utilities (Academic Paper Abstracts)
+
+Publisher sites (tandfonline.com, wiley.com, etc.) often block fetching with Cloudflare. For PubMed-indexed papers, E-utilities API can retrieve abstracts directly (no auth, no bot protection).
+
+```bash
+# Step 1: Search PMID by DOI
+curl -s 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&term={DOI}&retmode=json'
+# Response .esearchresult.idlist[0] is the PMID
+
+# Step 2: Fetch abstract by PMID
+curl -s 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pubmed&id={PMID}&rettype=abstract&retmode=text'
+
+# Keyword search
+curl -s 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&term=your+search+terms&retmode=json&retmax=5'
+```
+
+- `{DOI}` does not need URL encoding (e.g., `10.1080/13685538.2024.2363275`)
+- Abstracts often contain author names, sample sizes, and statistics (correlation coefficients, p-values) — sufficient for supporting claims
+- Prefer PMC full text (pmc.ncbi.nlm.nih.gov) when available. Use E-utilities as fallback
+- **Works reliably even on heavily protected sites** — bypasses Cloudflare on tandfonline.com, wiley.com, sciencedirect.com, etc.
+
+## Fetch Failure Fallback
+
+上記の汎用フォールバック（r.jina.ai → headless Chrome → direct curl）が全て失敗した場合:
+
+1. **ソース固有 API（最優先）**: サイト別の専用 API を試す
+   - 学術論文 → PubMed E-utilities（上記参照）
+   - Wikipedia → MediaWiki API（上記参照）
+   - note.com → API v3（上記参照）
+2. 全手段が失敗した場合、検索スニペットのみの引用は「検証不十分」扱い
+3. ただし**複数の検索スニペットで同一事実が確認できる**場合は許容（N2 マルチメディア合意ルールの延長）
+4. 検証が依然として失敗する場合は本文に注記を入れる（例: 「公式発表は確認されているが詳細は未確認」）
+5. **ユーザー提供 URL** が失敗した場合: ユーザーに報告し要点を共有してもらう（ユーザーが参照しようとしたソースをサイレントに落とさない）

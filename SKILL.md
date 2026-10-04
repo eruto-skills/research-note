@@ -8,6 +8,17 @@ argument-hint: [topic]
 
 # research-note
 
+## 実行環境の扱い
+
+この手順の Read / Bash / WebSearch / Agent / Skill は操作の種類を表す。
+Claude Codeでは対応するツールを使い、Codexでは提供されているファイル読取・シェル・Web検索・画像表示ツールを使う。
+別スキルを使うときは、利用可能なスキル一覧から名前と実際の SKILL.md の場所を確認して読む。
+スキルが未導入なら、その工程に必要な依存として案内し、実行したことにしない。
+サブエージェントは提供されているAPIと実行権限に従う。
+使えない場合、取得作業は自分で順に行い、独立レビューが必要な工程は未実施として報告する。
+スクリプトと参照資料は、この SKILL.md のあるディレクトリを基準に絶対パスへ解決する。
+作業先プロジェクトの cwd や隣のプラグインの配置を、スキルの配置場所と取り違えない。
+
 End-to-end research skill: investigate a topic and produce a footnoted Markdown note.
 
 ## Workflow
@@ -19,7 +30,7 @@ End-to-end research skill: investigate a topic and produce a footnoted Markdown 
    - If a GitHub URL is included, queue API metadata + README fetch for Step 2
 2. **Parallel: Check existing content + Web research + Source acquisition** *(run concurrently)*
    - 2a. Search the project for related existing notes. Read found notes to build context for comparison (insights emerge naturally from connecting new information to existing knowledge)
-   - 2b. Use WebSearch to find sources. For URL content retrieval, use Task subagents (see "URL Content Fetching" below)
+   - 2b. Use WebSearch to find sources. For URL content retrieval, use available subagent tools when permitted, otherwise fetch sequentially (see "URL Content Fetching" below)
    - 2c. YouTube URL → extract transcript via `yt-dlp` → [source-acquisition](references/source-acquisition.md). For series/playlist research (finding cut or deferred topics), follow [series-cut-topics](references/series-cut-topics.md)
    - 2d. X/Twitter URL → fetch via FixTweet API → [source-acquisition](references/source-acquisition.md)
    - 2e. PDF file → extract with Read tool → [source-acquisition](references/source-acquisition.md)
@@ -51,9 +62,9 @@ Prefer higher-tier sources. Do NOT cite a URL unless you have actually read the 
 
 ### URL Content Fetching
 
-→ [fetch-web](../fetch-web/SKILL.md) の戦略に従う（r.jina.ai 主、headless Chrome フォールバック）。
+利用可能な fetch-web スキルを名前で探して読み、取得戦略に従う。未導入なら r.jina.ai → このスキル同梱の scripts/fetch-page.js → direct curl の順で試す。
 
-複数 URL は Agent subagent を並列で起動する。subagent はページ全文でなく必要な情報のサマリーのみを返すことでメインコンテキストを圧迫しない。
+複数 URL は、利用可能で許可されたサブエージェント機能があれば並列で取得し、なければ自分で順に取得する。subagent はページ全文でなく必要な情報のサマリーのみを返すことでメインコンテキストを圧迫しない。
 
 ### Source Acquisition
 
@@ -160,4 +171,4 @@ These integrations depend on which skills are installed in your project. No spec
 
 - `yt-dlp` - YouTube transcript extraction
 - `curl` + `jq` - API calls (X/Twitter, GitHub, Wikipedia, PubMed)
-- `puppeteer-core` + `turndown` + Google Chrome - Headless Chrome fallback（[fetch-web](../fetch-web/SKILL.md) 経由）
+- `puppeteer-core` + `turndown` + Google Chrome - Headless Chrome fallback（同梱 scripts/fetch-page.js のある scripts/ で npm install）

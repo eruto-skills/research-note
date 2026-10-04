@@ -1,7 +1,7 @@
 {
   "name": "research-note",
   "description": "Research any topic from web, YouTube transcripts, PDFs, X/Twitter posts, or GitHub repos, then generate a footnoted Markdown note with an optional Mermaid mindmap. Includes source-quality tiers and headless-Chrome fetching for bot-protected pages.",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "author": {
     "name": "Eruto Kondo",
     "email": "erutobusiness@gmail.com"
@@ -18,5 +18,6 @@
     "mindmap",
     "mermaid",
     "citation"
-  ]
+  ],
+  "skills": "./skills/"
 }

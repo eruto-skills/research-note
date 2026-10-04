@@ -150,9 +150,9 @@ curl -s -A 'Mozilla/5.0' 'https://api.github.com/repos/{owner}/{repo}/readme' | 
 
 ## PDF Sources
 
-When a user provides a PDF file, extract text directly with the Read tool.
+When a user provides a PDF file, use the available PDF skill or PDF extraction tool. In Claude Code, Read can also read PDFs.
 
-- Read tool supports PDF reading (`pages` parameter for range, max 20 pages per call)
+- Claude Code Read supports PDF reading (`pages` parameter for range, max 20 pages per call)
 - For large PDFs (10+ pages), read in chunks (e.g., `pages: "1-20"`, `pages: "21-40"`)
 - Tier classification is content-based:
   - Academic papers, official reports → Tier 1 equivalent
@@ -163,7 +163,7 @@ When a user provides a PDF file, extract text directly with the Read tool.
 
 ## URL Content Fetching Strategy
 
-→ [fetch-web](../../fetch-web/SKILL.md) の戦略に従う（r.jina.ai 主、headless Chrome フォールバック）。
+利用可能な fetch-web スキルを名前で探して読み、取得戦略に従う。未導入なら r.jina.ai → このスキル同梱の scripts/fetch-page.js → direct curl の順で試す。
 
 複数 URL は並列で取得する。WebSearch 中は PMC 等の open-access 結果を優先的に拾う。
 
@@ -228,7 +228,7 @@ curl -s 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&te
 
 ## Fetch Failure Fallback
 
-[fetch-web](../../fetch-web/SKILL.md) の汎用フォールバック（r.jina.ai → headless Chrome → direct curl）が全て失敗した場合:
+上記の汎用フォールバック（r.jina.ai → headless Chrome → direct curl）が全て失敗した場合:
 
 1. **ソース固有 API（最優先）**: サイト別の専用 API を試す
    - 学術論文 → PubMed E-utilities（上記参照）
