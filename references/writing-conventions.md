@@ -68,8 +68,8 @@ Feature A was added[^1]. Feature B was also announced[^2].
 Use headless Chrome via `fetch-page.js` for URL content retrieval.
 
 ```bash
-node .claude/skills/research-note/scripts/fetch-page.js <URL>
-node .claude/skills/research-note/scripts/fetch-page.js <URL> --selector "article"
+node "<skill-directory>/scripts/fetch-page.js" "<URL>"
+node "<skill-directory>/scripts/fetch-page.js" "<URL>" --selector "article"
 ```
 
 - Output is Markdown (preserves heading and list structure)
