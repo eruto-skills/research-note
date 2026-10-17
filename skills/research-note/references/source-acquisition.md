@@ -8,18 +8,19 @@ Extract subtitles using `yt-dlp`.
 
 ```bash
 # Fetch subtitles (prefer Japanese, include auto-generated)
-yt-dlp --write-auto-subs --sub-langs 'ja' --sub-format srt --skip-download -o '/tmp/yt-%(id)s' '<URL>'
+yt-dlp --js-runtimes node --write-auto-subs --sub-langs 'ja' --sub-format srt --skip-download -o '/tmp/yt-%(id)s' '<URL>'
 
 # Clean extraction (remove timecodes and noise)
 grep -v '^\$' /tmp/yt-<ID>.ja.srt | grep -v '^[0-9]*$' | grep -v '^\[音楽\]$' | grep -v '^[0-9][0-9]:'
 
 # List available subtitle languages
-yt-dlp --list-subs '<URL>'
+yt-dlp --js-runtimes node --list-subs '<URL>'
 
 # Fetch comments (when needed)
-yt-dlp --write-comments --no-download -o '/tmp/yt-%(id)s' '<URL>'
+yt-dlp --js-runtimes node --write-comments --no-download -o '/tmp/yt-%(id)s' '<URL>'
 ```
 
+- Always pass `--js-runtimes node`: yt-dlp only looks for deno by default, and without a JS runtime the subtitle download can stop without writing a file
 - If Japanese subtitles are unavailable, fall back to `ja-orig` or `en`
 - If no subtitles exist at all, report to the user
 - Downloaded subtitle files are saved as `/tmp/yt-<ID>.<lang>.srt`
